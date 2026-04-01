@@ -1,17 +1,34 @@
 import { createCanvas } from 'canvas';
 import { resolveLayout } from '../composite/layout.js';
-import { loadFont } from '../composite/text-renderer.js';
+import { loadThemeFonts } from '../composite/font-loader.js';
 
-let fontLoaded = false;
+let lastFontKey = '';
 
 export async function ensureFonts(theme) {
-  if (!fontLoaded) {
-    await loadFont(theme);
-    fontLoaded = true;
+  const key = buildFontKey(theme);
+  if (key !== lastFontKey) {
+    await loadThemeFonts(theme);
+    lastFontKey = key;
   }
 }
 
+function buildFontKey(theme) {
+  const parts = [
+    theme.fontPreset || '',
+    theme.fontFamily || '',
+    theme.fontUrl || '',
+    theme.headlineFont?.family || '',
+    theme.headlineFont?.weight || '',
+    theme.subheadFont?.family || '',
+    theme.subheadFont?.weight || '',
+  ];
+  return parts.join('|');
+}
+
 export async function compositePreview(captureBuffer, scene, theme, targetSize, previewScale = 0.4) {
+  // Ensure fonts are loaded for this theme (handles dynamic changes from UI)
+  await ensureFonts(theme);
+
   const width = Math.round(targetSize.width * previewScale);
   const height = Math.round(targetSize.height * previewScale);
 
@@ -25,6 +42,8 @@ export async function compositePreview(captureBuffer, scene, theme, targetSize, 
 }
 
 export async function compositeExport(captureBuffer, scene, theme, targetSize) {
+  await ensureFonts(theme);
+
   const { width, height } = targetSize;
 
   const template = resolveLayout(scene, { width, height }, theme);

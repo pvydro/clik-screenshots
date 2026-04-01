@@ -1,6 +1,15 @@
 // Programmatic device frame renderer
 // Draws iPhone/iPad bezels with dynamic island or notch at runtime.
 
+import { roundRect } from './draw-utils.js';
+
+function hexToRgba2(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 const FRAME_PROFILES = {
   // Modern iPhone with Dynamic Island
   modern: {
@@ -28,19 +37,44 @@ const FRAME_PROFILES = {
     bezelWidth: 0.015,
     cornerRadius: 0.05,
   },
+  // Frameless — zero bezel, just rounded corners
+  frameless: {
+    bezelWidth: 0,
+    cornerRadius: 0.08,
+  },
+  // Shadow only — no visible frame, just corners + shadow
+  'shadow-only': {
+    bezelWidth: 0,
+    cornerRadius: 0.06,
+  },
+  // Clay — thick bezel with 3D bevel look
+  clay: {
+    bezelWidth: 0.035,
+    cornerRadius: 0.12,
+  },
+  // Android — punch-hole camera, smaller corner radius
+  android: {
+    bezelWidth: 0.01,
+    cornerRadius: 0.06,
+    punchHole: {
+      x: 0.5,              // centered
+      y: 0.01,             // near top
+      radius: 0.012,       // fraction of screen width
+    },
+  },
 };
 
-export function calculateFrameDimensions(targetWidth, targetHeight, frameStyle, textSpace) {
+export function calculateFrameDimensions(targetWidth, targetHeight, frameStyle, textSpace, options) {
   const profile = FRAME_PROFILES[frameStyle] || FRAME_PROFILES.modern;
   const bezelFraction = profile.bezelWidth;
 
   // Available space for device (after reserving text space)
-  const availWidth = targetWidth * 0.75;
-  const availHeight = (targetHeight - textSpace) * 0.85;
+  const scale = Math.max(0.1, Math.min(2.0, options?.scale ?? 1.0));
+  const availWidth = targetWidth * 0.75 * scale;
+  const availHeight = (targetHeight - textSpace) * 0.85 * scale;
 
-  // Device aspect ratio (screen area matches game aspect ratio approximately)
-  // For phones, assume ~1:2.17 screen ratio (iPhone 6.7")
-  const screenRatio = 1290 / 2796;
+  // Device aspect ratio — configurable, defaults to iPhone 6.7"
+  const screenRatio = options?.aspectRatio || 1290 / 2796;
 
   let deviceWidth, deviceHeight;
   if (availWidth / availHeight < screenRatio) {
@@ -116,11 +150,43 @@ export function drawDeviceFrame(ctx, x, y, dims, theme) {
     ctx.fill();
   }
 
-  // Subtle bezel highlight (top edge)
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, x + 0.5, y + 0.5, outerWidth - 1, outerHeight - 1, cornerRadius);
-  ctx.stroke();
+  // Punch-hole camera (Android style)
+  if (profile.punchHole) {
+    const ph = profile.punchHole;
+    const phX = screenX + screenWidth * ph.x;
+    const phY = screenY + screenHeight * ph.y;
+    const phR = screenWidth * ph.radius;
+
+    ctx.fillStyle = frameColor;
+    ctx.beginPath();
+    ctx.arc(phX, phY, phR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Clay 3D bevel effect
+  if (theme.frameStyle === 'clay') {
+    // Top highlight
+    const bevelGrad = ctx.createLinearGradient(x, y, x, y + outerHeight);
+    bevelGrad.addColorStop(0, 'rgba(255,255,255,0.15)');
+    bevelGrad.addColorStop(0.3, 'rgba(255,255,255,0)');
+    bevelGrad.addColorStop(0.7, 'rgba(0,0,0,0)');
+    bevelGrad.addColorStop(1, 'rgba(0,0,0,0.2)');
+    ctx.fillStyle = bevelGrad;
+    roundRect(ctx, x, y, outerWidth, outerHeight, cornerRadius);
+    ctx.fill();
+  }
+
+  // Subtle bezel highlight (top edge) — configurable
+  const highlight = theme.frameHighlight || {};
+  const hlColor = highlight.color || '#ffffff';
+  const hlOpacity = highlight.opacity != null ? highlight.opacity : 0.08;
+  const hlWidth = highlight.width || 1;
+  if (hlOpacity > 0 && bezel > 0) {
+    ctx.strokeStyle = hexToRgba2(hlColor, hlOpacity);
+    ctx.lineWidth = hlWidth;
+    roundRect(ctx, x + 0.5, y + 0.5, outerWidth - 1, outerHeight - 1, cornerRadius);
+    ctx.stroke();
+  }
 
   return {
     screenX,
@@ -131,16 +197,3 @@ export function drawDeviceFrame(ctx, x, y, dims, theme) {
   };
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}

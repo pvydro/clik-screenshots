@@ -1,15 +1,15 @@
 import { drawBackground } from '../composite/background.js';
 import { calculateFrameDimensions, drawDeviceFrame } from '../composite/device-frame.js';
 import { drawHeadline, drawSubhead } from '../composite/text-renderer.js';
-import { applyDropShadow, applyGlow, drawParticles } from '../composite/effects.js';
-import sharp from 'sharp';
-
-// Device with slight perspective rotation and stronger shadow
-// Same layout as device-centered but with a canvas rotation transform
+import { applyDropShadow, applyGlow, drawParticles, applyVignette, applyNoiseGrain } from '../composite/effects.js';
+import { drawScreenshot, hashString, applyDeviceTransform } from '../composite/draw-utils.js';
+import { renderLayers } from '../composite/layers.js';
+import { resolveLayout } from './defaults.js';
 
 export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize) {
   const { width, height } = targetSize;
   const effects = { ...theme.effects, ...(scene.overrides?.effects || {}) };
+  const layout = resolveLayout('device-angled', scene.layout);
 
   // Stronger shadow for angled view
   const angledEffects = {
@@ -25,87 +25,52 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
   // 2. Particles
   drawParticles(ctx, width, height, effects, hashString(scene.id));
 
-  // 3. Text area
-  const textAreaHeight = height * 0.22;
-  const textPadding = width * 0.08;
-  const textCenterX = width / 2;
+  // 3. Text
+  const textAreaHeight = height * layout.textAreaHeight;
+  const maxTextWidth = width * layout.text.maxWidth;
+  const textX = width * layout.text.x;
+  let textY = height * layout.text.y;
 
-  let textY = height * 0.06;
   const headlineHeight = drawHeadline(
-    ctx, scene.headline, textCenterX, textY, width - textPadding * 2, theme, width
+    ctx, scene.headline, textX, textY, maxTextWidth, theme, width, canvas, layout.text.align
   );
-  textY += headlineHeight + height * 0.015;
+  textY += headlineHeight + height * layout.text.gap;
   drawSubhead(
-    ctx, scene.subhead, textCenterX, textY, width - textPadding * 2, theme, width
+    ctx, scene.subhead, textX, textY, maxTextWidth, theme, width, canvas, layout.text.align
   );
 
-  // 4. Calculate device (slightly smaller to account for rotation)
+  // 4. Device (scale controls sizing via calculateFrameDimensions)
   const frameStyle = theme.frameStyle === 'none' ? 'modern' : theme.frameStyle;
-  const dims = calculateFrameDimensions(width * 0.9, height * 0.9, frameStyle, textAreaHeight);
+  const dims = calculateFrameDimensions(width, height, frameStyle, textAreaHeight, {
+    scale: layout.device.scale,
+  });
 
-  const deviceX = Math.round((width - dims.outerWidth) / 2);
-  const deviceY = Math.round(textAreaHeight + (height - textAreaHeight - dims.outerHeight) / 2);
+  const deviceCenterX = width * layout.device.x;
+  const deviceX = Math.round(deviceCenterX - dims.outerWidth / 2);
+  const deviceY = layout.device.y != null
+    ? Math.round(height * layout.device.y - dims.outerHeight / 2)
+    : Math.round(textAreaHeight + (height - textAreaHeight - dims.outerHeight) / 2);
 
   // 5. Apply rotation
-  const angle = -5 * (Math.PI / 180); // -5 degrees
+  const rotation = layout.device.rotation;
   const centerX = deviceX + dims.outerWidth / 2;
   const centerY = deviceY + dims.outerHeight / 2;
 
-  ctx.save();
-  ctx.translate(centerX, centerY);
-  ctx.rotate(angle);
-  ctx.translate(-centerX, -centerY);
+  const hasRotation = applyDeviceTransform(ctx, centerX, centerY, rotation);
 
-  // 6. Shadow
+  // 6. Shadow + frame + screenshot
   applyDropShadow(ctx, deviceX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, angledEffects);
-
-  // 7. Device frame
   const screen = drawDeviceFrame(ctx, deviceX, deviceY, dims, theme);
+  await drawScreenshot(ctx, screenshotBuffer, screen);
 
-  // 8. Screenshot
-  const resized = await sharp(screenshotBuffer)
-    .resize(screen.screenWidth, screen.screenHeight, { fit: 'cover' })
-    .png()
-    .toBuffer();
+  if (hasRotation) ctx.restore();
 
-  const { loadImage } = await import('canvas');
-  const img = await loadImage(resized);
-
-  roundRect(ctx, screen.screenX, screen.screenY, screen.screenWidth, screen.screenHeight, screen.screenCornerRadius);
-  ctx.clip();
-  ctx.drawImage(img, screen.screenX, screen.screenY, screen.screenWidth, screen.screenHeight);
-
-  ctx.restore();
-
-  // 9. Glow (after restoring transform so it's axis-aligned)
-  // Re-apply rotation for glow
-  ctx.save();
-  ctx.translate(centerX, centerY);
-  ctx.rotate(angle);
-  ctx.translate(-centerX, -centerY);
+  // 7. Glow (re-apply rotation)
+  const hasRotation2 = applyDeviceTransform(ctx, centerX, centerY, rotation);
   applyGlow(ctx, deviceX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, angledEffects);
-  ctx.restore();
-}
+  if (hasRotation2) ctx.restore();
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
+  renderLayers(ctx, width, height, scene.layers);
+  applyVignette(ctx, width, height, effects);
+  applyNoiseGrain(ctx, width, height, effects);
 }

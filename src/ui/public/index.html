@@ -60,6 +60,76 @@
         </div>
       </div>
 
+      <!-- Layout Controls -->
+      <div class="control-section">
+        <h3>Layout</h3>
+
+        <div class="control-group">
+          <label>Text X</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-text-x" min="0" max="100" value="50">
+            <span class="range-value" id="ctrl-layout-text-x-val">50%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Text Y</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-text-y" min="0" max="100" value="6">
+            <span class="range-value" id="ctrl-layout-text-y-val">6%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Text max width</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-text-maxw" min="20" max="100" value="84">
+            <span class="range-value" id="ctrl-layout-text-maxw-val">84%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Text alignment</label>
+          <select id="ctrl-layout-text-align">
+            <option value="left">Left</option>
+            <option value="center" selected>Center</option>
+            <option value="right">Right</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Text area height</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-text-area" min="5" max="50" value="22">
+            <span class="range-value" id="ctrl-layout-text-area-val">22%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Device X</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-dev-x" min="0" max="100" value="50">
+            <span class="range-value" id="ctrl-layout-dev-x-val">50%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Device scale</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-dev-scale" min="50" max="150" value="100">
+            <span class="range-value" id="ctrl-layout-dev-scale-val">100%</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Device rotation</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-layout-dev-rot" min="-30" max="30" value="0">
+            <span class="range-value" id="ctrl-layout-dev-rot-val">0°</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Theme Controls -->
       <div class="control-section">
         <h3>Theme</h3>
@@ -103,11 +173,93 @@
                 <span id="ctrl-gradient-color2-hex">#0a0a0f</span>
               </div>
             </div>
+            <div class="control-group" id="gradient-extra-stops">
+              <label>Color 3 <span class="hint">(optional)</span></label>
+              <div class="color-row">
+                <input type="color" id="ctrl-gradient-color3" value="#000000">
+                <span id="ctrl-gradient-color3-hex">#000000</span>
+                <label class="toggle toggle-sm">
+                  <input type="checkbox" id="ctrl-gradient-color3-on">
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </div>
+            </div>
             <div class="control-group">
               <label>Angle (linear)</label>
               <div class="range-row">
                 <input type="range" id="ctrl-gradient-angle" min="0" max="360" value="180">
                 <span class="range-value" id="ctrl-gradient-angle-val">180°</span>
+              </div>
+            </div>
+            <div class="control-group" id="radial-controls">
+              <label>Center X</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-gradient-cx" min="0" max="100" value="50">
+                <span class="range-value" id="ctrl-gradient-cx-val">50%</span>
+              </div>
+              <label>Center Y</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-gradient-cy" min="0" max="100" value="50">
+                <span class="range-value" id="ctrl-gradient-cy-val">50%</span>
+              </div>
+              <label>Radius</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-gradient-radius" min="20" max="150" value="70">
+                <span class="range-value" id="ctrl-gradient-radius-val">70%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Background Pattern -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Pattern</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-pattern-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="pattern-controls">
+            <div class="control-group">
+              <label>Type</label>
+              <select id="ctrl-pattern-type">
+                <option value="dots">Dots</option>
+                <option value="grid">Grid</option>
+                <option value="diagonal">Diagonal</option>
+                <option value="crosshatch">Crosshatch</option>
+                <option value="waves">Waves</option>
+                <option value="noise">Noise</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-pattern-color" value="#ffffff">
+                <span id="ctrl-pattern-color-hex">#ffffff</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Opacity</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-pattern-opacity" min="1" max="30" value="5">
+                <span class="range-value" id="ctrl-pattern-opacity-val">5%</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Spacing</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-pattern-spacing" min="5" max="80" value="20">
+                <span class="range-value" id="ctrl-pattern-spacing-val">20</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Size</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-pattern-size" min="1" max="10" value="2">
+                <span class="range-value" id="ctrl-pattern-size-val">2</span>
               </div>
             </div>
           </div>
@@ -145,9 +297,41 @@
           </div>
         </div>
 
+        <!-- Font System -->
         <div class="control-group">
-          <label>Font family</label>
-          <input type="text" id="ctrl-font" placeholder="e.g. Orbitron">
+          <label>Font preset</label>
+          <select id="ctrl-font-preset">
+            <option value="">Custom</option>
+            <option value="gaming">Gaming (Orbitron / Rajdhani)</option>
+            <option value="clean">Clean (Inter)</option>
+            <option value="bold">Bold (Bebas Neue / Open Sans)</option>
+            <option value="retro">Retro (Press Start 2P / VT323)</option>
+          </select>
+        </div>
+
+        <div id="custom-font-controls">
+          <div class="control-group">
+            <label>Headline font</label>
+            <input type="text" id="ctrl-headline-font" placeholder="e.g. Orbitron">
+          </div>
+          <div class="control-group">
+            <label>Headline weight</label>
+            <div class="range-row">
+              <input type="range" id="ctrl-headline-weight" min="100" max="900" step="100" value="900">
+              <span class="range-value" id="ctrl-headline-weight-val">900</span>
+            </div>
+          </div>
+          <div class="control-group">
+            <label>Subhead font</label>
+            <input type="text" id="ctrl-subhead-font" placeholder="e.g. Inter">
+          </div>
+          <div class="control-group">
+            <label>Subhead weight</label>
+            <div class="range-row">
+              <input type="range" id="ctrl-subhead-weight" min="100" max="900" step="100" value="400">
+              <span class="range-value" id="ctrl-subhead-weight-val">400</span>
+            </div>
+          </div>
         </div>
 
         <div class="control-group">
@@ -156,6 +340,10 @@
             <option value="modern">Modern (Dynamic Island)</option>
             <option value="classic">Classic (Notch)</option>
             <option value="tablet">Tablet (iPad)</option>
+            <option value="android">Android (Punch Hole)</option>
+            <option value="clay">Clay (3D Bevel)</option>
+            <option value="frameless">Frameless</option>
+            <option value="shadow-only">Shadow Only</option>
             <option value="none">None</option>
           </select>
         </div>
@@ -193,10 +381,31 @@
           </div>
           <div class="sub-controls visible" id="shadow-controls">
             <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-shadow-color" value="#000000">
+                <span id="ctrl-shadow-color-hex">#000000</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Opacity</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-shadow-opacity" min="0" max="100" value="50">
+                <span class="range-value" id="ctrl-shadow-opacity-val">50%</span>
+              </div>
+            </div>
+            <div class="control-group">
               <label>Blur</label>
               <div class="range-row">
                 <input type="range" id="ctrl-shadow-blur" min="0" max="120" value="60">
                 <span class="range-value" id="ctrl-shadow-blur-val">60</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Offset X</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-shadow-ox" min="-60" max="60" value="0">
+                <span class="range-value" id="ctrl-shadow-ox-val">0</span>
               </div>
             </div>
             <div class="control-group">
@@ -234,6 +443,13 @@
                 <span class="range-value" id="ctrl-glow-radius-val">40</span>
               </div>
             </div>
+            <div class="control-group">
+              <label>Intensity</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-glow-intensity" min="10" max="300" value="100">
+                <span class="range-value" id="ctrl-glow-intensity-val">100%</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -260,6 +476,280 @@
               <div class="range-row">
                 <input type="range" id="ctrl-particle-count" min="0" max="100" value="30">
                 <span class="range-value" id="ctrl-particle-count-val">30</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Shape</label>
+              <select id="ctrl-particle-shape">
+                <option value="mixed">Mixed</option>
+                <option value="circle">Circle</option>
+                <option value="star">Star</option>
+                <option value="square">Square</option>
+                <option value="diamond">Diamond</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vignette -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Vignette</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-vignette-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="vignette-controls">
+            <div class="control-group">
+              <label>Radius</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-vignette-radius" min="20" max="100" value="70">
+                <span class="range-value" id="ctrl-vignette-radius-val">70%</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Opacity</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-vignette-opacity" min="5" max="80" value="40">
+                <span class="range-value" id="ctrl-vignette-opacity-val">40%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Film Grain -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Film Grain</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-grain-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="grain-controls">
+            <div class="control-group">
+              <label>Opacity</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-grain-opacity" min="1" max="20" value="5">
+                <span class="range-value" id="ctrl-grain-opacity-val">5%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Content Layers -->
+      <div class="control-section collapsed">
+        <h3>Layers</h3>
+        <div class="control-group">
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">
+            <button class="btn btn-sm" id="btn-add-badge">+ Badge</button>
+            <button class="btn btn-sm" id="btn-add-rating">+ Rating</button>
+            <button class="btn btn-sm" id="btn-add-text">+ Text</button>
+            <button class="btn btn-sm" id="btn-add-divider">+ Divider</button>
+          </div>
+          <div id="layers-list"></div>
+        </div>
+      </div>
+
+      <!-- Text Effects Controls -->
+      <div class="control-section">
+        <h3>Text Effects</h3>
+
+        <!-- Text Gradient -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Gradient Fill</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-text-gradient-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="text-gradient-controls">
+            <div class="control-group">
+              <label>Color 1</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-text-gradient-color1" value="#00ffcc">
+                <span id="ctrl-text-gradient-color1-hex">#00ffcc</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Color 2</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-text-gradient-color2" value="#aa44ff">
+                <span id="ctrl-text-gradient-color2-hex">#aa44ff</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Angle</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-gradient-angle" min="0" max="360" value="0">
+                <span class="range-value" id="ctrl-text-gradient-angle-val">0°</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Glow -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Glow / Neon</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-text-glow-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="text-glow-controls">
+            <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-text-glow-color" value="#00ffcc">
+                <span id="ctrl-text-glow-color-hex">#00ffcc</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Blur</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-glow-blur" min="1" max="60" value="20">
+                <span class="range-value" id="ctrl-text-glow-blur-val">20</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Strength</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-glow-strength" min="1" max="8" value="3">
+                <span class="range-value" id="ctrl-text-glow-strength-val">3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Outline -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Outline</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-text-outline-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="text-outline-controls">
+            <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-text-outline-color" value="#ffffff">
+                <span id="ctrl-text-outline-color-hex">#ffffff</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Width</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-outline-width" min="1" max="10" value="2">
+                <span class="range-value" id="ctrl-text-outline-width-val">2</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="toggle-row">
+                <label>Fill on top</label>
+                <label class="toggle">
+                  <input type="checkbox" id="ctrl-text-outline-fill" checked>
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Shadow -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Text Shadow</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-text-shadow-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="text-shadow-controls">
+            <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-text-shadow-color" value="#000000">
+                <span id="ctrl-text-shadow-color-hex">#000000</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Offset X</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-shadow-ox" min="-20" max="20" value="0">
+                <span class="range-value" id="ctrl-text-shadow-ox-val">0</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Offset Y</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-shadow-oy" min="-20" max="20" value="4">
+                <span class="range-value" id="ctrl-text-shadow-oy-val">4</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Blur</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-shadow-blur" min="0" max="30" value="8">
+                <span class="range-value" id="ctrl-text-shadow-blur-val">8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glitch -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Glitch</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-text-glitch-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="text-glitch-controls">
+            <div class="control-group">
+              <label>Intensity</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-glitch-intensity" min="0" max="100" value="50">
+                <span class="range-value" id="ctrl-text-glitch-intensity-val">0.5</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>RGB Split</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-glitch-rgb" min="0" max="10" value="3">
+                <span class="range-value" id="ctrl-text-glitch-rgb-val">3</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Slices</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-text-glitch-slices" min="0" max="15" value="5">
+                <span class="range-value" id="ctrl-text-glitch-slices-val">5</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <div class="toggle-row">
+                <label>Scanlines</label>
+                <label class="toggle">
+                  <input type="checkbox" id="ctrl-text-glitch-scanlines" checked>
+                  <div class="toggle-track"></div>
+                  <div class="toggle-thumb"></div>
+                </label>
               </div>
             </div>
           </div>

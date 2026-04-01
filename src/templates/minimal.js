@@ -1,10 +1,11 @@
 import { drawSubhead } from '../composite/text-renderer.js';
+import { renderLayers } from '../composite/layers.js';
+import { resolveLayout } from './defaults.js';
 import sharp from 'sharp';
-
-// Minimal: clean screenshot at target resolution, optional subtle text watermark
 
 export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize) {
   const { width, height } = targetSize;
+  const layout = resolveLayout('minimal', scene.layout);
 
   // 1. Draw screenshot filling entire canvas
   const resized = await sharp(screenshotBuffer)
@@ -18,17 +19,19 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
 
   // 2. Optional subtle text at bottom
   if (scene.headline || scene.subhead) {
-    // Light semi-transparent background strip
+    const stripHeight = height * (layout.stripHeight || 0.06);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    const stripHeight = height * 0.06;
     ctx.fillRect(0, height - stripHeight, width, stripHeight);
 
     const text = scene.headline || scene.subhead;
+    const maxTextWidth = width * layout.text.maxWidth;
     drawSubhead(
-      ctx, text, width / 2, height - stripHeight + stripHeight * 0.2,
-      width * 0.9,
+      ctx, text, width * layout.text.x, height - stripHeight + stripHeight * 0.2,
+      maxTextWidth,
       { ...theme, subheadColor: 'rgba(255,255,255,0.8)', subheadSize: 28 },
-      width
+      width, canvas, layout.text.align
     );
   }
+
+  renderLayers(ctx, width, height, scene.layers);
 }

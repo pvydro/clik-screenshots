@@ -1,8 +1,14 @@
 export const SIZES = [
+  // iOS
   { id: 'iphone-6.7', width: 1290, height: 2796, label: 'iPhone 6.7" (14/15/16 Pro Max)' },
   { id: 'iphone-6.5', width: 1284, height: 2778, label: 'iPhone 6.5" (11 Pro Max, XS Max)' },
   { id: 'iphone-5.5', width: 1242, height: 2208, label: 'iPhone 5.5" (8 Plus)' },
   { id: 'ipad-12.9',  width: 2048, height: 2732, label: 'iPad Pro 12.9"' },
+  // Android
+  { id: 'android-16x9',  width: 1080, height: 1920, label: 'Android Phone 16:9' },
+  { id: 'android-20x9',  width: 1080, height: 2400, label: 'Android Phone 20:9' },
+  { id: 'android-tab-7', width: 1200, height: 1920, label: 'Android 7" Tablet' },
+  { id: 'android-tab-10', width: 1600, height: 2560, label: 'Android 10" Tablet' },
 ];
 
 export function getSizeById(id) {

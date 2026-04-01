@@ -35,6 +35,11 @@ export async function captureScenes(config, scenes, sizes, adapter) {
 
     console.log(`  Viewport: ${baseWidth}×${baseHeight} @ ${dpr}x DPR (capture: ${baseWidth * dpr}×${baseHeight * dpr})`);
 
+    // Inject pre-load scripts (e.g. suppress tutorials) before each page navigation
+    if (config.game.preloadScript) {
+      await page.evaluateOnNewDocument(config.game.preloadScript);
+    }
+
     for (const scene of scenes) {
       console.log(`\n  Capturing: ${scene.name || scene.id}`);
 

@@ -1,23 +1,15 @@
 import { drawBackground, drawGradientFade } from '../composite/background.js';
 import { drawHeadline, drawSubhead } from '../composite/text-renderer.js';
-import { drawParticles } from '../composite/effects.js';
+import { drawParticles, applyVignette, applyNoiseGrain } from '../composite/effects.js';
+import { hashString } from '../composite/draw-utils.js';
+import { renderLayers } from '../composite/layers.js';
+import { resolveLayout } from './defaults.js';
 import sharp from 'sharp';
-
-// Full-bleed: game screenshot fills canvas, text overlaid at bottom with gradient fade
-//
-// ┌─────────────────────┐
-// │                     │
-// │     GAME SCREEN     │
-// │     (edge to edge)  │
-// │                     │
-// │ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │  ← gradient fade
-// │   Headline Text     │
-// │    Subhead text     │
-// └─────────────────────┘
 
 export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize) {
   const { width, height } = targetSize;
   const effects = { ...theme.effects, ...(scene.overrides?.effects || {}) };
+  const layout = resolveLayout('full-bleed', scene.layout);
 
   // 1. Draw screenshot filling entire canvas
   const resized = await sharp(screenshotBuffer)
@@ -30,34 +22,29 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
   ctx.drawImage(img, 0, 0, width, height);
 
   // 2. Gradient fade at bottom for text readability
-  const textAreaStart = height * 0.65;
+  const fadeStart = height * (layout.fadeStart || 0.65);
   const bgColor = theme.backgroundColor || '#0a0a0f';
-  drawGradientFade(ctx, width, height, textAreaStart, bgColor, 'up');
+  drawGradientFade(ctx, width, height, fadeStart, bgColor, 'up');
 
   // 3. Particles over the fade area
   drawParticles(ctx, width, height, effects, hashString(scene.id));
 
-  // 4. Headline text
-  const textPadding = width * 0.08;
-  const textCenterX = width / 2;
-  let textY = height * 0.78;
+  // 4. Text
+  const maxTextWidth = width * layout.text.maxWidth;
+  const textX = width * layout.text.x;
+  let textY = height * layout.text.y;
 
   const headlineHeight = drawHeadline(
-    ctx, scene.headline, textCenterX, textY, width - textPadding * 2, theme, width
+    ctx, scene.headline, textX, textY, maxTextWidth, theme, width, canvas, layout.text.align
   );
-  textY += headlineHeight + height * 0.015;
+  textY += headlineHeight + height * layout.text.gap;
 
-  // 5. Subhead
   drawSubhead(
-    ctx, scene.subhead, textCenterX, textY, width - textPadding * 2, theme, width
+    ctx, scene.subhead, textX, textY, maxTextWidth, theme, width, canvas, layout.text.align
   );
-}
 
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
+  renderLayers(ctx, width, height, scene.layers);
+
+  applyVignette(ctx, width, height, effects);
+  applyNoiseGrain(ctx, width, height, effects);
 }

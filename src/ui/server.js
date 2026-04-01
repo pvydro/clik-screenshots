@@ -23,7 +23,7 @@ export async function startUI(config, port = 3456) {
   // Serve static UI files
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Pre-load fonts
+  // Pre-load fonts from initial config (will also reload dynamically on preview)
   await ensureFonts(config.theme);
 
   // ── API Routes ──
@@ -38,6 +38,7 @@ export async function startUI(config, port = 3456) {
         headline: s.headline || '',
         subhead: s.subhead || '',
         overrides: s.overrides || null,
+        layout: s.layout || null,
       })),
       theme: config.theme,
       sizes: resolveSizes(config.sizes),
@@ -88,6 +89,11 @@ export async function startUI(config, port = 3456) {
         const dpr = 4;
         const page = await browser.newPage();
         await page.setViewport({ width: baseWidth, height: baseHeight, deviceScaleFactor: dpr });
+
+        // Inject pre-load scripts (e.g. suppress tutorials) before each page navigation
+        if (config.game.preloadScript) {
+          await page.evaluateOnNewDocument(config.game.preloadScript);
+        }
 
         for (const scene of scenesToCapture) {
           await page.goto(config.serve.url, { waitUntil: 'networkidle0', timeout: 30000 });

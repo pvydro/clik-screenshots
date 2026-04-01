@@ -1,109 +1,74 @@
 import { drawBackground } from '../composite/background.js';
 import { calculateFrameDimensions, drawDeviceFrame } from '../composite/device-frame.js';
 import { drawHeadline, drawSubhead } from '../composite/text-renderer.js';
-import { applyDropShadow, applyGlow, drawParticles } from '../composite/effects.js';
-import sharp from 'sharp';
-
-// Side-by-side: two device frames next to each other
-// Used for before/after or showing two game modes
-//
-// ┌──────────────────────────┐
-// │      Headline Text       │
-// │       Subhead text       │
-// │                          │
-// │  ┌─────────┐ ┌────────┐ │
-// │  │ ┌─────┐ │ │ ┌────┐ │ │
-// │  │ │GAME │ │ │ │GAME│ │ │
-// │  │ │  1  │ │ │ │ 2  │ │ │
-// │  │ └─────┘ │ │ └────┘ │ │
-// │  └─────────┘ └────────┘ │
-// └──────────────────────────┘
-//
-// Note: This template expects scene.secondarySetup for the second screenshot.
-// If no secondary is provided, it mirrors the primary.
+import { applyDropShadow, applyGlow, drawParticles, applyVignette, applyNoiseGrain } from '../composite/effects.js';
+import { drawScreenshot, hashString, applyDeviceTransform } from '../composite/draw-utils.js';
+import { renderLayers } from '../composite/layers.js';
+import { resolveLayout } from './defaults.js';
 
 export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize) {
   const { width, height } = targetSize;
   const effects = { ...theme.effects, ...(scene.overrides?.effects || {}) };
+  const layout = resolveLayout('side-by-side', scene.layout);
 
   // 1. Background
   drawBackground(ctx, width, height, theme);
   drawParticles(ctx, width, height, effects, hashString(scene.id));
 
   // 2. Text
-  const textAreaHeight = height * 0.2;
-  const textPadding = width * 0.06;
-  const textCenterX = width / 2;
+  const textAreaHeight = height * layout.textAreaHeight;
+  const maxTextWidth = width * layout.text.maxWidth;
+  const textX = width * layout.text.x;
+  let textY = height * layout.text.y;
 
-  let textY = height * 0.05;
   const headlineHeight = drawHeadline(
-    ctx, scene.headline, textCenterX, textY, width - textPadding * 2, theme, width
+    ctx, scene.headline, textX, textY, maxTextWidth, theme, width, canvas, layout.text.align
   );
-  textY += headlineHeight + height * 0.01;
+  textY += headlineHeight + height * layout.text.gap;
   drawSubhead(
-    ctx, scene.subhead, textCenterX, textY, width - textPadding * 2, theme, width
+    ctx, scene.subhead, textX, textY, maxTextWidth, theme, width, canvas, layout.text.align
   );
 
   // 3. Two device frames side by side
   const frameStyle = theme.frameStyle === 'none' ? 'modern' : theme.frameStyle;
   const halfWidth = width * 0.42;
-  const dims = calculateFrameDimensions(halfWidth, height * 0.7, frameStyle, textAreaHeight);
+  const dims = calculateFrameDimensions(halfWidth, height * 0.7, frameStyle, textAreaHeight, {
+    scale: layout.device?.scale ?? 1.0,
+  });
 
-  const gap = width * 0.04;
+  const gap = width * (layout.deviceGap || 0.04);
   const totalDeviceWidth = dims.outerWidth * 2 + gap;
   const startX = Math.round((width - totalDeviceWidth) / 2);
   const deviceY = Math.round(textAreaHeight + (height - textAreaHeight - dims.outerHeight) / 2);
 
+  const rotation = layout.device?.rotation || 0;
+
   // Left device
   const leftX = startX;
+  const leftCenterX = leftX + dims.outerWidth / 2;
+  const leftCenterY = deviceY + dims.outerHeight / 2;
+
+  let hasRot = applyDeviceTransform(ctx, leftCenterX, leftCenterY, rotation);
   applyDropShadow(ctx, leftX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
   const leftScreen = drawDeviceFrame(ctx, leftX, deviceY, dims, theme);
   await drawScreenshot(ctx, screenshotBuffer, leftScreen);
   applyGlow(ctx, leftX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
+  if (hasRot) ctx.restore();
 
   // Right device (same screenshot if no secondary)
   const rightX = startX + dims.outerWidth + gap;
+  const rightCenterX = rightX + dims.outerWidth / 2;
+  const rightCenterY = deviceY + dims.outerHeight / 2;
+
+  hasRot = applyDeviceTransform(ctx, rightCenterX, rightCenterY, rotation);
   applyDropShadow(ctx, rightX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
   const rightScreen = drawDeviceFrame(ctx, rightX, deviceY, dims, theme);
   await drawScreenshot(ctx, screenshotBuffer, rightScreen);
   applyGlow(ctx, rightX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
-}
+  if (hasRot) ctx.restore();
 
-async function drawScreenshot(ctx, buffer, screen) {
-  const resized = await sharp(buffer)
-    .resize(screen.screenWidth, screen.screenHeight, { fit: 'cover' })
-    .png()
-    .toBuffer();
+  renderLayers(ctx, width, height, scene.layers);
 
-  const { loadImage } = await import('canvas');
-  const img = await loadImage(resized);
-
-  ctx.save();
-  roundRect(ctx, screen.screenX, screen.screenY, screen.screenWidth, screen.screenHeight, screen.screenCornerRadius);
-  ctx.clip();
-  ctx.drawImage(img, screen.screenX, screen.screenY, screen.screenWidth, screen.screenHeight);
-  ctx.restore();
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = ((hash << 5) - hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
+  applyVignette(ctx, width, height, effects);
+  applyNoiseGrain(ctx, width, height, effects);
 }

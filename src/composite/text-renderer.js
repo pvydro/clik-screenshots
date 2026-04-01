@@ -1,96 +1,62 @@
-import { createCanvas, registerFont } from 'canvas';
-import { scaleValue, fetchGoogleFontsCss, extractFontUrls, downloadFont } from '../utils.js';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import { scaleValue } from '../utils.js';
+import { resolveFont, loadThemeFonts } from './font-loader.js';
+import { drawTextWithEffects } from './text-effects.js';
 
-const REFERENCE_WIDTH = 1290; // Scale text relative to iPhone 6.7" width
-let fontsLoaded = new Set();
+const REFERENCE_WIDTH = 1290;
 
+/**
+ * Load fonts for the theme. Call once before rendering.
+ */
 export async function loadFont(theme) {
-  if (!theme.fontUrl || fontsLoaded.has(theme.fontFamily)) return;
-
-  try {
-    console.log(`  Loading font: ${theme.fontFamily}`);
-
-    const css = await fetchGoogleFontsCss(theme.fontUrl);
-    const fontUrls = extractFontUrls(css);
-
-    if (fontUrls.length === 0) {
-      console.warn(`  No font files found in Google Fonts response`);
-      return;
-    }
-
-    const tmpDir = path.join(os.tmpdir(), 'clik-screenshots-fonts');
-    fs.mkdirSync(tmpDir, { recursive: true });
-
-    // Download each font weight
-    for (let i = 0; i < fontUrls.length; i++) {
-      const url = fontUrls[i];
-      const ext = url.includes('.woff2') ? '.woff2' : url.includes('.woff') ? '.woff' : '.ttf';
-      const fontPath = path.join(tmpDir, `${theme.fontFamily}-${i}${ext}`);
-
-      if (!fs.existsSync(fontPath)) {
-        const fontData = await downloadFont(url);
-        fs.writeFileSync(fontPath, fontData);
-      }
-
-      try {
-        registerFont(fontPath, {
-          family: theme.fontFamily,
-          weight: i === 0 ? '400' : i === 1 ? '700' : '900',
-        });
-      } catch {
-        // node-canvas may not support woff2; that's okay, we'll use system fonts
-      }
-    }
-
-    fontsLoaded.add(theme.fontFamily);
-    console.log(`  Font loaded: ${theme.fontFamily}`);
-  } catch (err) {
-    console.warn(`  Could not load font ${theme.fontFamily}: ${err.message}`);
-    console.warn(`  Falling back to system sans-serif`);
-  }
+  await loadThemeFonts(theme);
 }
 
-export function drawHeadline(ctx, text, x, y, maxWidth, theme, targetWidth) {
+/**
+ * Draw headline text with effects.
+ */
+export function drawHeadline(ctx, text, x, y, maxWidth, theme, targetWidth, canvas, align) {
   if (!text) return 0;
 
+  const { family, weight } = resolveFont(theme, 'headline');
   const fontSize = scaleValue(theme.headlineSize || 72, REFERENCE_WIDTH, targetWidth);
-  const fontFamily = theme.fontFamily || 'sans-serif';
 
-  ctx.font = `900 ${fontSize}px "${fontFamily}", sans-serif`;
-  ctx.fillStyle = theme.headlineColor || '#ffffff';
-  ctx.textAlign = 'center';
+  ctx.font = `${weight} ${fontSize}px "${family}", sans-serif`;
+  ctx.textAlign = align || 'center';
   ctx.textBaseline = 'top';
 
-  // Handle multiline text
+  const textEffects = theme.textEffects || null;
+  const fillColor = theme.headlineColor || '#ffffff';
+
   const lines = text.split('\n');
   const lineHeight = fontSize * 1.2;
   let currentY = y;
 
   for (const line of lines) {
-    // Word wrap if needed
     const wrappedLines = wrapText(ctx, line, maxWidth);
     for (const wrappedLine of wrappedLines) {
-      ctx.fillText(wrappedLine, x, currentY);
+      drawTextWithEffects(ctx, canvas, wrappedLine, x, currentY, fillColor, textEffects, maxWidth);
       currentY += lineHeight;
     }
   }
 
-  return currentY - y; // Total height used
+  return currentY - y;
 }
 
-export function drawSubhead(ctx, text, x, y, maxWidth, theme, targetWidth) {
+/**
+ * Draw subhead text with effects.
+ */
+export function drawSubhead(ctx, text, x, y, maxWidth, theme, targetWidth, canvas, align) {
   if (!text) return 0;
 
+  const { family, weight } = resolveFont(theme, 'subhead');
   const fontSize = scaleValue(theme.subheadSize || 36, REFERENCE_WIDTH, targetWidth);
-  const fontFamily = theme.fontFamily || 'sans-serif';
 
-  ctx.font = `400 ${fontSize}px "${fontFamily}", sans-serif`;
-  ctx.fillStyle = theme.subheadColor || '#aaaacc';
-  ctx.textAlign = 'center';
+  ctx.font = `${weight} ${fontSize}px "${family}", sans-serif`;
+  ctx.textAlign = align || 'center';
   ctx.textBaseline = 'top';
+
+  const textEffects = theme.textEffects || null;
+  const fillColor = theme.subheadColor || '#aaaacc';
 
   const lines = text.split('\n');
   const lineHeight = fontSize * 1.3;
@@ -99,7 +65,7 @@ export function drawSubhead(ctx, text, x, y, maxWidth, theme, targetWidth) {
   for (const line of lines) {
     const wrappedLines = wrapText(ctx, line, maxWidth);
     for (const wrappedLine of wrappedLines) {
-      ctx.fillText(wrappedLine, x, currentY);
+      drawTextWithEffects(ctx, canvas, wrappedLine, x, currentY, fillColor, textEffects, maxWidth);
       currentY += lineHeight;
     }
   }

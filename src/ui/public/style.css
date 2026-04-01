@@ -86,10 +86,60 @@ body {
 
 .btn-export:hover { background: rgba(0,255,204,0.1); }
 
+.btn-sm {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+}
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.layer-item .layer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.layer-item .layer-type {
+  color: var(--accent);
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.layer-item .layer-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer-item .btn-remove {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
 /* ── Main Layout ── */
 .main {
   display: grid;
-  grid-template-columns: 180px 1fr 320px;
+  grid-template-columns: 180px 1fr 340px;
   height: calc(100vh - 52px - 32px);
 }
 
@@ -220,6 +270,51 @@ body {
   margin-bottom: 10px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.control-section h3::after {
+  content: '\25B2';
+  font-size: 8px;
+  transition: transform 0.2s;
+}
+
+.control-section.collapsed h3::after {
+  transform: rotate(180deg);
+}
+
+.control-section.collapsed > :not(h3) {
+  display: none !important;
+}
+
+.hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.toggle-sm {
+  width: 28px;
+  height: 16px;
+}
+
+.toggle-sm .toggle-track {
+  border-radius: 8px;
+}
+
+.toggle-sm .toggle-thumb {
+  width: 12px;
+  height: 12px;
+  top: 2px;
+  left: 2px;
+}
+
+.toggle-sm input:checked ~ .toggle-thumb {
+  transform: translateX(12px);
 }
 
 .control-group {
@@ -371,6 +466,12 @@ body {
 }
 
 .sub-controls.visible { display: block; }
+
+/* Custom font controls (hidden when preset selected) */
+#custom-font-controls {
+  margin-top: 4px;
+  padding-left: 4px;
+}
 
 /* ── Status Bar ── */
 .statusbar {
