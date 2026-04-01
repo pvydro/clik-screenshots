@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>clik-screenshots</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <h1><span>clik</span>-screenshots</h1>
+    <div class="topbar-actions">
+      <button class="btn btn-primary" id="btn-capture">Capture All</button>
+      <button class="btn btn-export" id="btn-export">Export</button>
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="main">
+
+    <!-- Scenes Panel -->
+    <div class="scenes-panel">
+      <h3>Scenes</h3>
+      <div id="scene-list"></div>
+    </div>
+
+    <!-- Preview Panel -->
+    <div class="preview-panel">
+      <div class="preview-container" id="preview-container">
+        <div class="preview-placeholder">
+          <div>No preview yet</div>
+          <div class="hint">Click "Capture All" to capture game scenes</div>
+        </div>
+      </div>
+      <div class="preview-controls">
+        <label>Size:</label>
+        <select id="size-select"></select>
+      </div>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="controls-panel">
+
+      <!-- Per-Scene Controls -->
+      <div class="control-section">
+        <h3>Scene</h3>
+        <div class="control-group">
+          <label>Template</label>
+          <select id="ctrl-template"></select>
+        </div>
+        <div class="control-group">
+          <label>Headline</label>
+          <textarea id="ctrl-headline" rows="2" placeholder="Headline text"></textarea>
+        </div>
+        <div class="control-group">
+          <label>Subhead</label>
+          <textarea id="ctrl-subhead" rows="2" placeholder="Subhead text"></textarea>
+        </div>
+      </div>
+
+      <!-- Theme Controls -->
+      <div class="control-section">
+        <h3>Theme</h3>
+
+        <div class="control-group">
+          <label>Background</label>
+          <div class="color-row">
+            <input type="color" id="ctrl-bg-color" value="#0a0a0f">
+            <span id="ctrl-bg-color-hex">#0a0a0f</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Gradient</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-gradient-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="gradient-controls">
+            <div class="control-group">
+              <label>Type</label>
+              <select id="ctrl-gradient-type">
+                <option value="radial">Radial</option>
+                <option value="linear">Linear</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Start color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-gradient-color1" value="#1a1a3f">
+                <span id="ctrl-gradient-color1-hex">#1a1a3f</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>End color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-gradient-color2" value="#0a0a0f">
+                <span id="ctrl-gradient-color2-hex">#0a0a0f</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Angle (linear)</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-gradient-angle" min="0" max="360" value="180">
+                <span class="range-value" id="ctrl-gradient-angle-val">180°</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Headline color</label>
+          <div class="color-row">
+            <input type="color" id="ctrl-headline-color" value="#ffffff">
+            <span id="ctrl-headline-color-hex">#ffffff</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Headline size</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-headline-size" min="24" max="120" value="72">
+            <span class="range-value" id="ctrl-headline-size-val">72</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Subhead color</label>
+          <div class="color-row">
+            <input type="color" id="ctrl-subhead-color" value="#aaaacc">
+            <span id="ctrl-subhead-color-hex">#aaaacc</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Subhead size</label>
+          <div class="range-row">
+            <input type="range" id="ctrl-subhead-size" min="16" max="72" value="36">
+            <span class="range-value" id="ctrl-subhead-size-val">36</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Font family</label>
+          <input type="text" id="ctrl-font" placeholder="e.g. Orbitron">
+        </div>
+
+        <div class="control-group">
+          <label>Frame style</label>
+          <select id="ctrl-frame-style">
+            <option value="modern">Modern (Dynamic Island)</option>
+            <option value="classic">Classic (Notch)</option>
+            <option value="tablet">Tablet (iPad)</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label>Frame color</label>
+          <div class="color-row">
+            <input type="color" id="ctrl-frame-color" value="#1a1a1a">
+            <span id="ctrl-frame-color-hex">#1a1a1a</span>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>Accent color</label>
+          <div class="color-row">
+            <input type="color" id="ctrl-accent-color" value="#00ffcc">
+            <span id="ctrl-accent-color-hex">#00ffcc</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Effects Controls -->
+      <div class="control-section">
+        <h3>Effects</h3>
+
+        <!-- Drop Shadow -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Drop Shadow</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-shadow-on" checked>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls visible" id="shadow-controls">
+            <div class="control-group">
+              <label>Blur</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-shadow-blur" min="0" max="120" value="60">
+                <span class="range-value" id="ctrl-shadow-blur-val">60</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Offset Y</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-shadow-offset" min="0" max="60" value="20">
+                <span class="range-value" id="ctrl-shadow-offset-val">20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glow -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Glow</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-glow-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="glow-controls">
+            <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-glow-color" value="#00ffcc">
+                <span id="ctrl-glow-color-hex">#00ffcc</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Radius</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-glow-radius" min="0" max="100" value="40">
+                <span class="range-value" id="ctrl-glow-radius-val">40</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Particles -->
+        <div class="control-group">
+          <div class="toggle-row">
+            <label>Particles</label>
+            <label class="toggle">
+              <input type="checkbox" id="ctrl-particles-on">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div class="sub-controls" id="particle-controls">
+            <div class="control-group">
+              <label>Color</label>
+              <div class="color-row">
+                <input type="color" id="ctrl-particle-color" value="#ffffff">
+                <span id="ctrl-particle-color-hex">#ffffff</span>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>Count</label>
+              <div class="range-row">
+                <input type="range" id="ctrl-particle-count" min="0" max="100" value="30">
+                <span class="range-value" id="ctrl-particle-count-val">30</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <span class="status-text" id="status-text">Ready</span>
+    <span class="status-timing" id="status-timing"></span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

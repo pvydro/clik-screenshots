@@ -56,4 +56,21 @@ program
     console.log();
   });
 
+program
+  .command('ui')
+  .description('Launch interactive preview UI')
+  .option('--port <port>', 'UI server port', '3456')
+  .option('--config <path>', 'Path to config file', 'clik-screenshots.config.js')
+  .action(async (options) => {
+    try {
+      const config = await loadConfig(options.config);
+      const { startUI } = await import('../src/ui/server.js');
+      const port = process.env.PORT || options.port;
+      await startUI(config, parseInt(port));
+    } catch (err) {
+      console.error(`\n  Error: ${err.message}\n`);
+      process.exit(1);
+    }
+  });
+
 program.parse();
