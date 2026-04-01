@@ -1,0 +1,31 @@
+{
+  "name": "clik-screenshots",
+  "version": "0.1.0",
+  "description": "Automated iOS App Store screenshot generator for canvas/WebGL games",
+  "bin": {
+    "clik-screenshots": "./bin/cli.js"
+  },
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node bin/cli.js"
+  },
+  "keywords": [
+    "screenshots",
+    "app-store",
+    "ios",
+    "canvas",
+    "webgl",
+    "phaser",
+    "game",
+    "clik-engine"
+  ],
+  "author": "pvydro",
+  "license": "MIT",
+  "dependencies": {
+    "canvas": "^3.1.0",
+    "commander": "^13.1.0",
+    "puppeteer": "^24.0.0",
+    "sharp": "^0.33.0"
+  }
+}
