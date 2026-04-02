@@ -1,4 +1,4 @@
-import { createCanvas } from 'canvas';
+import { createCanvas } from '@napi-rs/canvas';
 import { hexToRgb, hexToRgba } from '../utils.js';
 
 /**

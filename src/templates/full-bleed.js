@@ -1,6 +1,6 @@
-import { drawBackground, drawGradientFade } from '../composite/background.js';
+import { drawBackground, drawGradientFade, drawBackgroundBanners } from '../composite/background.js';
 import { drawHeadline, drawSubhead } from '../composite/text-renderer.js';
-import { drawParticles, applyVignette, applyNoiseGrain } from '../composite/effects.js';
+import { drawParticles, drawFloatingShapes, applyBackgroundBlur, applyVignette, applyNoiseGrain } from '../composite/effects.js';
 import { hashString } from '../composite/draw-utils.js';
 import { renderLayers } from '../composite/layers.js';
 import { resolveLayout } from './defaults.js';
@@ -17,7 +17,7 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
     .png()
     .toBuffer();
 
-  const { loadImage } = await import('canvas');
+  const { loadImage } = await import('@napi-rs/canvas');
   const img = await loadImage(resized);
   ctx.drawImage(img, 0, 0, width, height);
 
@@ -26,8 +26,11 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
   const bgColor = theme.backgroundColor || '#0a0a0f';
   drawGradientFade(ctx, width, height, fadeStart, bgColor, 'up');
 
-  // 3. Particles over the fade area
+  // 3. Banners, particles, floating shapes
+  drawBackgroundBanners(ctx, width, height, theme.backgroundBanners);
   drawParticles(ctx, width, height, effects, hashString(scene.id));
+  drawFloatingShapes(ctx, width, height, effects, hashString(scene.id) + 7);
+  await applyBackgroundBlur(ctx, canvas, effects);
 
   // 4. Text
   const maxTextWidth = width * layout.text.maxWidth;

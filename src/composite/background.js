@@ -1,4 +1,5 @@
 import { hexToRgba } from '../utils.js';
+import { roundRect } from './draw-utils.js';
 
 export function drawBackground(ctx, width, height, theme) {
   const gradient = theme.backgroundGradient;
@@ -159,4 +160,41 @@ export function drawGradientFade(ctx, width, height, startY, color, direction = 
 
   ctx.fillStyle = gradient;
   ctx.fillRect(0, startY, width, gradientHeight);
+}
+
+// Draw decorative background banners/rectangles
+export function drawBackgroundBanners(ctx, width, height, banners) {
+  if (!banners || !Array.isArray(banners) || banners.length === 0) return;
+
+  for (const banner of banners) {
+    const bx = (banner.x || 0) * width;
+    const by = (banner.y || 0) * height;
+    const bw = (banner.width || 1.0) * width;
+    const bh = (banner.height || 0.08) * height;
+    const color = banner.color || '#ffffff';
+    const opacity = banner.opacity != null ? banner.opacity : 0.15;
+    const cr = banner.cornerRadius || 0;
+    const rotation = banner.rotation || 0;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.fillStyle = color;
+
+    if (rotation !== 0) {
+      const cx = bx + bw / 2;
+      const cy = by + bh / 2;
+      ctx.translate(cx, cy);
+      ctx.rotate(rotation * Math.PI / 180);
+      ctx.translate(-cx, -cy);
+    }
+
+    if (cr > 0) {
+      roundRect(ctx, bx, by, bw, bh, cr);
+      ctx.fill();
+    } else {
+      ctx.fillRect(bx, by, bw, bh);
+    }
+
+    ctx.restore();
+  }
 }

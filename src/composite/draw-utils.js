@@ -26,7 +26,7 @@ export async function drawScreenshot(ctx, buffer, screen) {
     .png()
     .toBuffer();
 
-  const { loadImage } = await import('canvas');
+  const { loadImage } = await import('@napi-rs/canvas');
   const img = await loadImage(resized);
 
   ctx.save();

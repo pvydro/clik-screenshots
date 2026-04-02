@@ -280,11 +280,11 @@ function loadTextEffectsControls(te) {
 // ── Layout Controls ──
 
 const LAYOUT_TEMPLATE_DEFAULTS = {
-  'device-centered': { text: { x: 50, y: 6, maxWidth: 84, align: 'center' }, textAreaHeight: 22, device: { x: 50, scale: 100, rotation: 0 } },
-  'device-angled': { text: { x: 50, y: 6, maxWidth: 84, align: 'center' }, textAreaHeight: 22, device: { x: 50, scale: 90, rotation: -5 } },
-  'full-bleed': { text: { x: 50, y: 78, maxWidth: 84, align: 'center' }, textAreaHeight: 22, device: { x: 50, scale: 100, rotation: 0 } },
-  'minimal': { text: { x: 50, y: 50, maxWidth: 90, align: 'center' }, textAreaHeight: 6, device: { x: 50, scale: 100, rotation: 0 } },
-  'side-by-side': { text: { x: 50, y: 5, maxWidth: 88, align: 'center' }, textAreaHeight: 20, device: { x: 50, scale: 100, rotation: 0 } },
+  'device-centered': { text: { x: 50, y: 6, maxWidth: 84, align: 'center' }, textAreaHeight: 22, device: { x: 50, y: 50, scale: 100, rotation: 0 } },
+  'device-angled': { text: { x: 50, y: 6, maxWidth: 84, align: 'center' }, textAreaHeight: 22, device: { x: 50, y: 50, scale: 90, rotation: -5 } },
+  'full-bleed': { text: { x: 50, y: 78, maxWidth: 84, align: 'center' }, textAreaHeight: 22, device: { x: 50, y: 50, scale: 100, rotation: 0 } },
+  'minimal': { text: { x: 50, y: 50, maxWidth: 90, align: 'center' }, textAreaHeight: 6, device: { x: 50, y: 50, scale: 100, rotation: 0 } },
+  'side-by-side': { text: { x: 50, y: 5, maxWidth: 88, align: 'center' }, textAreaHeight: 20, device: { x: 50, y: 50, scale: 100, rotation: 0 } },
 };
 
 function loadLayoutControls(layout, template) {
@@ -296,6 +296,7 @@ function loadLayoutControls(layout, template) {
   const textAlign = layout?.text?.align || defaults.text.align;
   const textArea = layout?.textAreaHeight != null ? Math.round(layout.textAreaHeight * 100) : defaults.textAreaHeight;
   const devX = layout?.device?.x != null ? Math.round(layout.device.x * 100) : defaults.device.x;
+  const devY = layout?.device?.y != null ? Math.round(layout.device.y * 100) : defaults.device.y;
   const devScale = layout?.device?.scale != null ? Math.round(layout.device.scale * 100) : defaults.device.scale;
   const devRot = layout?.device?.rotation != null ? layout.device.rotation : defaults.device.rotation;
 
@@ -305,6 +306,7 @@ function loadLayoutControls(layout, template) {
   document.getElementById('ctrl-layout-text-align').value = textAlign;
   setLayoutRange('ctrl-layout-text-area', textArea);
   setLayoutRange('ctrl-layout-dev-x', devX);
+  setLayoutRange('ctrl-layout-dev-y', devY);
   setLayoutRange('ctrl-layout-dev-scale', devScale);
   document.getElementById('ctrl-layout-dev-rot').value = devRot;
   document.getElementById('ctrl-layout-dev-rot-val').textContent = devRot + '°';
@@ -328,6 +330,7 @@ function readLayout() {
     textAreaHeight: parseInt(document.getElementById('ctrl-layout-text-area').value) / 100,
     device: {
       x: parseInt(document.getElementById('ctrl-layout-dev-x').value) / 100,
+      y: parseInt(document.getElementById('ctrl-layout-dev-y').value) / 100,
       scale: parseInt(document.getElementById('ctrl-layout-dev-scale').value) / 100,
       rotation: parseInt(document.getElementById('ctrl-layout-dev-rot').value),
     },
@@ -399,6 +402,37 @@ function readTheme() {
       vignetteOpacity: parseInt(document.getElementById('ctrl-vignette-opacity').value) / 100,
       grain: document.getElementById('ctrl-grain-on').checked,
       grainOpacity: parseInt(document.getElementById('ctrl-grain-opacity').value) / 100,
+      // Shadow enhancements
+      shadowLayers: parseInt(document.getElementById('ctrl-shadow-layers').value),
+      shadowSpread: parseInt(document.getElementById('ctrl-shadow-spread').value),
+      // Glow enhancements
+      glowPasses: parseInt(document.getElementById('ctrl-glow-passes').value),
+      glowColor2: document.getElementById('ctrl-glow-color2-on').checked ? document.getElementById('ctrl-glow-color2').value : null,
+      // Inner glow
+      glowInner: document.getElementById('ctrl-glow-inner-on').checked,
+      glowInnerColor: document.getElementById('ctrl-glow-inner-color').value,
+      glowInnerRadius: parseInt(document.getElementById('ctrl-glow-inner-radius').value),
+      glowInnerOpacity: parseInt(document.getElementById('ctrl-glow-inner-opacity').value) / 100,
+      // Device outline
+      deviceOutline: document.getElementById('ctrl-outline-on').checked,
+      outlineColor: document.getElementById('ctrl-outline-color').value,
+      outlineWidth: parseInt(document.getElementById('ctrl-outline-width').value),
+      outlineOpacity: parseInt(document.getElementById('ctrl-outline-opacity').value) / 100,
+      outlineOffset: parseInt(document.getElementById('ctrl-outline-offset').value),
+      // Floating shapes
+      floatingShapes: document.getElementById('ctrl-shapes-on').checked,
+      shapeColor: document.getElementById('ctrl-shape-color').value,
+      shapeCount: parseInt(document.getElementById('ctrl-shape-count').value),
+      shapeOpacity: parseInt(document.getElementById('ctrl-shape-opacity').value) / 100,
+      shapeSizeMin: parseInt(document.getElementById('ctrl-shape-size-min').value),
+      shapeSizeMax: parseInt(document.getElementById('ctrl-shape-size-max').value),
+      shapeTypes: document.getElementById('ctrl-shape-type').value,
+      shapeBlur: parseInt(document.getElementById('ctrl-shape-blur').value),
+      shapeFilled: document.getElementById('ctrl-shape-filled').checked,
+      shapeStrokeWidth: parseInt(document.getElementById('ctrl-shape-stroke').value),
+      // Background blur
+      backgroundBlur: document.getElementById('ctrl-bg-blur-on').checked,
+      backgroundBlurRadius: parseInt(document.getElementById('ctrl-bg-blur-radius').value),
     },
     textEffects: readTextEffects(),
   };
@@ -704,7 +738,9 @@ function bindEvents() {
     'ctrl-frame-color', 'ctrl-accent-color', 'ctrl-gradient-color1',
     'ctrl-gradient-color2', 'ctrl-gradient-color3',
     'ctrl-shadow-color',
-    'ctrl-glow-color', 'ctrl-particle-color', 'ctrl-pattern-color',
+    'ctrl-glow-color', 'ctrl-glow-color2', 'ctrl-glow-inner-color',
+    'ctrl-particle-color', 'ctrl-pattern-color',
+    'ctrl-outline-color', 'ctrl-shape-color',
     // Text effects colors
     'ctrl-text-gradient-color1', 'ctrl-text-gradient-color2',
     'ctrl-text-glow-color', 'ctrl-text-outline-color', 'ctrl-text-shadow-color',
@@ -721,8 +757,14 @@ function bindEvents() {
   for (const id of [
     'ctrl-headline-size', 'ctrl-subhead-size', 'ctrl-gradient-angle',
     'ctrl-shadow-blur', 'ctrl-shadow-offset', 'ctrl-shadow-ox',
-    'ctrl-glow-radius',
+    'ctrl-shadow-layers', 'ctrl-shadow-spread',
+    'ctrl-glow-radius', 'ctrl-glow-passes',
+    'ctrl-glow-inner-radius',
     'ctrl-particle-count', 'ctrl-pattern-spacing', 'ctrl-pattern-size',
+    'ctrl-outline-width', 'ctrl-outline-offset',
+    'ctrl-shape-count', 'ctrl-shape-size-min', 'ctrl-shape-size-max',
+    'ctrl-shape-blur', 'ctrl-shape-stroke',
+    'ctrl-bg-blur-radius',
     // Font weights
     'ctrl-headline-weight', 'ctrl-subhead-weight',
     // Text effects ranges
@@ -759,6 +801,7 @@ function bindEvents() {
   for (const id of [
     'ctrl-pattern-opacity', 'ctrl-shadow-opacity', 'ctrl-glow-intensity',
     'ctrl-vignette-radius', 'ctrl-vignette-opacity', 'ctrl-grain-opacity',
+    'ctrl-outline-opacity', 'ctrl-shape-opacity', 'ctrl-glow-inner-opacity',
   ]) {
     const el = document.getElementById(id);
     el.addEventListener('input', () => {
@@ -778,6 +821,8 @@ function bindEvents() {
 
   // Pattern type select
   document.getElementById('ctrl-pattern-type').addEventListener('change', requestPreview);
+  // Shape type select
+  document.getElementById('ctrl-shape-type').addEventListener('change', requestPreview);
 
   // Toggles
   bindToggle('ctrl-gradient-on', 'gradient-controls');
@@ -787,6 +832,10 @@ function bindEvents() {
   bindToggle('ctrl-pattern-on', 'pattern-controls');
   bindToggle('ctrl-vignette-on', 'vignette-controls');
   bindToggle('ctrl-grain-on', 'grain-controls');
+  bindToggle('ctrl-outline-on', 'outline-controls');
+  bindToggle('ctrl-shapes-on', 'shapes-controls');
+  bindToggle('ctrl-bg-blur-on', 'bg-blur-controls');
+  bindToggle('ctrl-glow-inner-on', 'glow-inner-controls');
   // Text effects toggles
   bindToggle('ctrl-text-gradient-on', 'text-gradient-controls');
   bindToggle('ctrl-text-glow-on', 'text-glow-controls');
@@ -795,14 +844,14 @@ function bindEvents() {
   bindToggle('ctrl-text-glitch-on', 'text-glitch-controls');
 
   // Standalone toggles (no sub-controls, just trigger preview)
-  for (const id of ['ctrl-text-outline-fill', 'ctrl-text-glitch-scanlines']) {
+  for (const id of ['ctrl-text-outline-fill', 'ctrl-text-glitch-scanlines', 'ctrl-glow-color2-on', 'ctrl-shape-filled']) {
     document.getElementById(id).addEventListener('change', requestPreview);
   }
 
   // Layout sliders
   for (const id of [
     'ctrl-layout-text-x', 'ctrl-layout-text-y', 'ctrl-layout-text-maxw',
-    'ctrl-layout-text-area', 'ctrl-layout-dev-x', 'ctrl-layout-dev-scale',
+    'ctrl-layout-text-area', 'ctrl-layout-dev-x', 'ctrl-layout-dev-y', 'ctrl-layout-dev-scale',
   ]) {
     const el = document.getElementById(id);
     el.addEventListener('input', () => {

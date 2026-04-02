@@ -1,4 +1,4 @@
-import { createCanvas } from 'canvas';
+import { createCanvas } from '@napi-rs/canvas';
 import { resolveLayout } from '../composite/layout.js';
 import { loadThemeFonts } from '../composite/font-loader.js';
 
@@ -25,7 +25,7 @@ function buildFontKey(theme) {
   return parts.join('|');
 }
 
-export async function compositePreview(captureBuffer, scene, theme, targetSize, previewScale = 0.4) {
+export async function compositePreview(captureBuffer, scene, theme, targetSize, previewScale = 0.4, rightBuffer = null) {
   // Ensure fonts are loaded for this theme (handles dynamic changes from UI)
   await ensureFonts(theme);
 
@@ -36,12 +36,12 @@ export async function compositePreview(captureBuffer, scene, theme, targetSize, 
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
 
-  await template.render(ctx, canvas, captureBuffer, scene, theme, { width, height });
+  await template.render(ctx, canvas, captureBuffer, scene, theme, { width, height }, rightBuffer);
 
   return canvas.toBuffer('image/png');
 }
 
-export async function compositeExport(captureBuffer, scene, theme, targetSize) {
+export async function compositeExport(captureBuffer, scene, theme, targetSize, rightBuffer = null) {
   await ensureFonts(theme);
 
   const { width, height } = targetSize;
@@ -50,7 +50,7 @@ export async function compositeExport(captureBuffer, scene, theme, targetSize) {
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
 
-  await template.render(ctx, canvas, captureBuffer, scene, theme, { width, height });
+  await template.render(ctx, canvas, captureBuffer, scene, theme, { width, height }, rightBuffer);
 
   return canvas.toBuffer('image/png');
 }

@@ -1,4 +1,4 @@
-import { createCanvas } from 'canvas';
+import { createCanvas } from '@napi-rs/canvas';
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
@@ -17,7 +17,7 @@ export async function compositeAll(captures, config) {
   const results = [];
 
   for (const capture of captures) {
-    const { sceneId, sizeId, width, height, buffer, scene } = capture;
+    const { sceneId, sizeId, width, height, buffer, rightBuffer, scene } = capture;
 
     // Merge theme with per-scene overrides
     const theme = mergeTheme(config.theme, scene.overrides);
@@ -32,7 +32,7 @@ export async function compositeAll(captures, config) {
     const ctx = canvas.getContext('2d');
 
     // Render template
-    await template.render(ctx, canvas, buffer, scene, theme, { width, height });
+    await template.render(ctx, canvas, buffer, scene, theme, { width, height }, rightBuffer || null);
 
     // Export as PNG
     const filename = `${sceneId}_${sizeId}.png`;

@@ -1,7 +1,7 @@
-import { drawBackground } from '../composite/background.js';
+import { drawBackground, drawBackgroundBanners } from '../composite/background.js';
 import { calculateFrameDimensions, drawDeviceFrame } from '../composite/device-frame.js';
 import { drawHeadline, drawSubhead } from '../composite/text-renderer.js';
-import { applyDropShadow, applyGlow, drawParticles, applyVignette, applyNoiseGrain } from '../composite/effects.js';
+import { applyDropShadow, applyGlow, applyDeviceOutline, applyInnerGlow, drawParticles, drawFloatingShapes, applyBackgroundBlur, applyVignette, applyNoiseGrain } from '../composite/effects.js';
 import { drawScreenshot, hashString, applyDeviceTransform } from '../composite/draw-utils.js';
 import { renderLayers } from '../composite/layers.js';
 import { resolveLayout } from './defaults.js';
@@ -21,9 +21,14 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
 
   // 1. Background
   drawBackground(ctx, width, height, theme);
+  drawBackgroundBanners(ctx, width, height, theme.backgroundBanners);
 
-  // 2. Particles
+  // 2. Particles & floating shapes
   drawParticles(ctx, width, height, effects, hashString(scene.id));
+  drawFloatingShapes(ctx, width, height, effects, hashString(scene.id) + 7);
+
+  // 3. Background blur
+  await applyBackgroundBlur(ctx, canvas, effects);
 
   // 3. Text
   const textAreaHeight = height * layout.textAreaHeight;
@@ -58,10 +63,12 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
 
   const hasRotation = applyDeviceTransform(ctx, centerX, centerY, rotation);
 
-  // 6. Shadow + frame + screenshot
+  // 6. Shadow + frame + screenshot + outline + inner glow
   applyDropShadow(ctx, deviceX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, angledEffects);
   const screen = drawDeviceFrame(ctx, deviceX, deviceY, dims, theme);
   await drawScreenshot(ctx, screenshotBuffer, screen);
+  applyDeviceOutline(ctx, deviceX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
+  applyInnerGlow(ctx, screen, effects);
 
   if (hasRotation) ctx.restore();
 

@@ -1,8 +1,8 @@
-import { registerFont } from 'canvas';
+import { GlobalFonts } from '@napi-rs/canvas';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { fetchGoogleFontsCss, extractFontUrls, downloadFont } from '../utils.js';
+import { fetchGoogleFontsCss, extractFontEntries, downloadFont } from '../utils.js';
 
 const loaded = new Set();
 const TMP_DIR = path.join(os.tmpdir(), 'clik-screenshots-fonts');
@@ -84,7 +84,7 @@ async function loadLocalFont(filePath, family, weight = '400') {
   }
 
   try {
-    registerFont(resolved, { family, weight: String(weight) });
+    GlobalFonts.registerFromPath(resolved, family);
     loaded.add(family);
     console.log(`  Font loaded (local): ${family}`);
   } catch (err) {
@@ -102,35 +102,36 @@ async function loadGoogleFont(fontUrl, family) {
   fs.mkdirSync(TMP_DIR, { recursive: true });
 
   const css = await fetchGoogleFontsCss(fontUrl);
-  const fontUrls = extractFontUrls(css);
+  const fontEntries = extractFontEntries(css);
 
-  if (fontUrls.length === 0) {
+  if (fontEntries.length === 0) {
     console.warn(`  No font files found for ${family}`);
     return;
   }
 
-  for (let i = 0; i < fontUrls.length; i++) {
-    const url = fontUrls[i];
-    const ext = url.includes('.woff2') ? '.woff2' : url.includes('.woff') ? '.woff' : '.ttf';
-    const fontPath = path.join(TMP_DIR, `${family.replace(/\s+/g, '-')}-${i}${ext}`);
+  let registered = 0;
+  for (const entry of fontEntries) {
+    const fontPath = path.join(TMP_DIR, `${family.replace(/\s+/g, '-')}-${entry.weight}.ttf`);
 
     if (!fs.existsSync(fontPath)) {
-      const data = await downloadFont(url);
+      const data = await downloadFont(entry.url);
       fs.writeFileSync(fontPath, data);
     }
 
     try {
-      registerFont(fontPath, {
-        family,
-        weight: i === 0 ? '400' : i === 1 ? '700' : '900',
-      });
-    } catch {
-      // node-canvas may not support woff2
+      GlobalFonts.registerFromPath(fontPath, family);
+      registered++;
+    } catch (err) {
+      console.warn(`  Failed to register ${family} weight ${entry.weight}: ${err.message}`);
     }
   }
 
-  loaded.add(family);
-  console.log(`  Font loaded: ${family}`);
+  if (registered > 0) {
+    loaded.add(family);
+    console.log(`  Font loaded: ${family} (${registered} weights)`);
+  } else {
+    console.warn(`  Font ${family}: no weights registered`);
+  }
 }
 
 /**

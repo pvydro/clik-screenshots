@@ -48,13 +48,24 @@ export function extractFontUrls(css) {
   return urls;
 }
 
+// Extract font entries with weight + URL from Google Fonts CSS @font-face blocks
+export function extractFontEntries(css) {
+  const entries = [];
+  const regex = /@font-face\s*\{[^}]*font-weight:\s*(\d+)[^}]*url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)[^}]*\}/g;
+  let match;
+  while ((match = regex.exec(css)) !== null) {
+    entries.push({ weight: parseInt(match[1]), url: match[2] });
+  }
+  return entries;
+}
+
 // Fetch Google Fonts CSS (with woff2 user-agent)
 export function fetchGoogleFontsCss(fontUrl) {
   return new Promise((resolve, reject) => {
     const getter = fontUrl.startsWith('https') ? https : http;
     getter.get(fontUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'node',
       },
     }, (res) => {
       const chunks = [];

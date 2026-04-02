@@ -115,6 +115,26 @@ export async function startUI(config, port = 3456) {
           const buffer = await canvasEl.screenshot({ type: 'png' });
 
           captureCache.set(scene.id, buffer);
+
+          // Capture second screenshot for side-by-side right device
+          if (scene.setupRight) {
+            await page.goto(config.serve.url, { waitUntil: 'networkidle0', timeout: 30000 });
+            await page.waitForSelector(config.game.canvasSelector, { timeout: 10000 });
+            await page.evaluate(() => document.fonts.ready);
+            await new Promise(r => setTimeout(r, 1500));
+            if (config.game.muteCommand) {
+              await page.evaluate(config.game.muteCommand).catch(() => {});
+            }
+            const rightScene = { ...scene, setup: scene.setupRight };
+            await runSceneSetup(page, rightScene, null);
+            await page.evaluate(() => new Promise(r =>
+              requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))
+            ));
+            await new Promise(r => setTimeout(r, 200));
+            const canvasEl2 = await page.$(config.game.canvasSelector);
+            const buffer2 = await canvasEl2.screenshot({ type: 'png' });
+            captureCache.set(scene.id + ':right', buffer2);
+          }
         }
 
         await browser.close();
@@ -148,8 +168,10 @@ export async function startUI(config, port = 3456) {
     const sizes = resolveSizes(config.sizes);
     const targetSize = sizes.find(s => s.id === sizeId) || SIZES.find(s => s.id === sizeId) || SIZES[0];
 
+    const rightBuffer = captureCache.get(sceneId + ':right') || null;
+
     try {
-      const png = await compositePreview(buffer, scene, theme, targetSize, previewScale);
+      const png = await compositePreview(buffer, scene, theme, targetSize, previewScale, rightBuffer);
       res.set('Content-Type', 'image/png');
       res.send(png);
     } catch (err) {
@@ -185,7 +207,8 @@ export async function startUI(config, port = 3456) {
             const compDir = path.join(outputDir, 'composited');
             ensureDir(compDir);
             const filename = `${sceneConfig.id}_${size.id}.png`;
-            const png = await compositeExport(buffer, sceneConfig, theme, size);
+            const rightBuffer = captureCache.get(sceneConfig.id + ':right') || null;
+            const png = await compositeExport(buffer, sceneConfig, theme, size, rightBuffer);
             fs.writeFileSync(path.join(compDir, filename), png);
             results.push({ type: 'composited', file: filename, width: size.width, height: size.height, bytes: png.length });
           }

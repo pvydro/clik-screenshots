@@ -1,19 +1,22 @@
-import { drawBackground } from '../composite/background.js';
+import { drawBackground, drawBackgroundBanners } from '../composite/background.js';
 import { calculateFrameDimensions, drawDeviceFrame } from '../composite/device-frame.js';
 import { drawHeadline, drawSubhead } from '../composite/text-renderer.js';
-import { applyDropShadow, applyGlow, drawParticles, applyVignette, applyNoiseGrain } from '../composite/effects.js';
+import { applyDropShadow, applyGlow, applyDeviceOutline, applyInnerGlow, drawParticles, drawFloatingShapes, applyBackgroundBlur, applyVignette, applyNoiseGrain } from '../composite/effects.js';
 import { drawScreenshot, hashString, applyDeviceTransform } from '../composite/draw-utils.js';
 import { renderLayers } from '../composite/layers.js';
 import { resolveLayout } from './defaults.js';
 
-export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize) {
+export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize, rightBuffer = null) {
   const { width, height } = targetSize;
   const effects = { ...theme.effects, ...(scene.overrides?.effects || {}) };
   const layout = resolveLayout('side-by-side', scene.layout);
 
   // 1. Background
   drawBackground(ctx, width, height, theme);
+  drawBackgroundBanners(ctx, width, height, theme.backgroundBanners);
   drawParticles(ctx, width, height, effects, hashString(scene.id));
+  drawFloatingShapes(ctx, width, height, effects, hashString(scene.id) + 7);
+  await applyBackgroundBlur(ctx, canvas, effects);
 
   // 2. Text
   const textAreaHeight = height * layout.textAreaHeight;
@@ -39,7 +42,9 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
   const gap = width * (layout.deviceGap || 0.04);
   const totalDeviceWidth = dims.outerWidth * 2 + gap;
   const startX = Math.round((width - totalDeviceWidth) / 2);
-  const deviceY = Math.round(textAreaHeight + (height - textAreaHeight - dims.outerHeight) / 2);
+  const deviceY = layout.device.y != null
+    ? Math.round(height * layout.device.y - dims.outerHeight / 2)
+    : Math.round(textAreaHeight + (height - textAreaHeight - dims.outerHeight) / 2);
 
   const rotation = layout.device?.rotation || 0;
 
@@ -52,6 +57,8 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
   applyDropShadow(ctx, leftX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
   const leftScreen = drawDeviceFrame(ctx, leftX, deviceY, dims, theme);
   await drawScreenshot(ctx, screenshotBuffer, leftScreen);
+  applyDeviceOutline(ctx, leftX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
+  applyInnerGlow(ctx, leftScreen, effects);
   applyGlow(ctx, leftX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
   if (hasRot) ctx.restore();
 
@@ -63,7 +70,9 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
   hasRot = applyDeviceTransform(ctx, rightCenterX, rightCenterY, rotation);
   applyDropShadow(ctx, rightX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
   const rightScreen = drawDeviceFrame(ctx, rightX, deviceY, dims, theme);
-  await drawScreenshot(ctx, screenshotBuffer, rightScreen);
+  await drawScreenshot(ctx, rightBuffer || screenshotBuffer, rightScreen);
+  applyDeviceOutline(ctx, rightX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
+  applyInnerGlow(ctx, rightScreen, effects);
   applyGlow(ctx, rightX, deviceY, dims.outerWidth, dims.outerHeight, dims.cornerRadius, effects);
   if (hasRot) ctx.restore();
 

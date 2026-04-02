@@ -75,6 +75,28 @@ export async function captureScenes(config, scenes, sizes, adapter) {
 
       console.log(`    ✓ Captured ${buffer.length} bytes (${baseWidth * dpr}×${baseHeight * dpr})`);
 
+      // Capture second screenshot for side-by-side right device
+      let rightBuffer = null;
+      if (scene.setupRight) {
+        console.log(`    Capturing right device...`);
+        await page.goto(config.serve.url, { waitUntil: 'networkidle0', timeout: 30000 });
+        await page.waitForSelector(config.game.canvasSelector, { timeout: 10000 });
+        await page.evaluate(() => document.fonts.ready);
+        await new Promise(r => setTimeout(r, 1500));
+        if (config.game.muteCommand) {
+          await page.evaluate(config.game.muteCommand).catch(() => {});
+        }
+        const rightScene = { ...scene, setup: scene.setupRight };
+        await runSceneSetup(page, rightScene, adapter);
+        await page.evaluate(() => new Promise(r =>
+          requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))
+        ));
+        await new Promise(r => setTimeout(r, 200));
+        const canvasEl2 = await page.$(config.game.canvasSelector);
+        rightBuffer = await canvasEl2.screenshot({ type: 'png' });
+        console.log(`    ✓ Right device: ${rightBuffer.length} bytes`);
+      }
+
       // Produce one capture entry per target size (compositing will resize)
       for (const size of sizes) {
         captures.push({
@@ -83,6 +105,7 @@ export async function captureScenes(config, scenes, sizes, adapter) {
           width: size.width,
           height: size.height,
           buffer,
+          rightBuffer,
           scene,
         });
       }

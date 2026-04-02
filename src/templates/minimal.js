@@ -1,10 +1,14 @@
 import { drawSubhead } from '../composite/text-renderer.js';
+import { drawBackgroundBanners } from '../composite/background.js';
+import { drawFloatingShapes, applyBackgroundBlur } from '../composite/effects.js';
+import { hashString } from '../composite/draw-utils.js';
 import { renderLayers } from '../composite/layers.js';
 import { resolveLayout } from './defaults.js';
 import sharp from 'sharp';
 
 export async function render(ctx, canvas, screenshotBuffer, scene, theme, targetSize) {
   const { width, height } = targetSize;
+  const effects = { ...theme.effects, ...(scene.overrides?.effects || {}) };
   const layout = resolveLayout('minimal', scene.layout);
 
   // 1. Draw screenshot filling entire canvas
@@ -13,9 +17,14 @@ export async function render(ctx, canvas, screenshotBuffer, scene, theme, target
     .png()
     .toBuffer();
 
-  const { loadImage } = await import('canvas');
+  const { loadImage } = await import('@napi-rs/canvas');
   const img = await loadImage(resized);
   ctx.drawImage(img, 0, 0, width, height);
+
+  // Background overlays
+  drawBackgroundBanners(ctx, width, height, theme.backgroundBanners);
+  drawFloatingShapes(ctx, width, height, effects, hashString(scene.id) + 7);
+  await applyBackgroundBlur(ctx, canvas, effects);
 
   // 2. Optional subtle text at bottom
   if (scene.headline || scene.subhead) {
